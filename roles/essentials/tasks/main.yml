@@ -107,3 +107,6 @@
     - "EDITOR=vim"
     - "ENV=production"
     - "RAILS_ENV=production"
+
+- name: swap tasks
+  include: swap.yml
