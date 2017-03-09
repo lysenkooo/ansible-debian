@@ -1,0 +1,14 @@
+[Unit]
+Description={{ app_name }}
+After=network.target
+
+[Service]
+User={{ user }}
+EnvironmentFile={{ app_current_path }}/.env
+WorkingDirectory={{ app_current_path }}
+ExecStart=/usr/local/rvm/wrappers/default/bundle exec puma -e production -b unix://{{ app_current_path }}/tmp/puma.sock
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

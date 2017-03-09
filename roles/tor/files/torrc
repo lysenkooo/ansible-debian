@@ -1,0 +1,10 @@
+CookieAuthentication 0
+DataDirectory /var/lib/tor
+
+ControlPort 9600
+
+SocksPort 9601
+SocksPort 9602
+SocksPort 9603
+SocksPort 9604
+SocksPort 9605

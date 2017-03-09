@@ -1,0 +1,10 @@
+---
+
+- name: nodejs apt-key is added
+  apt_key: url=https://deb.nodesource.com/gpgkey/nodesource.gpg.key state=present
+
+- name: nodejs repo is added
+  apt_repository: repo="deb https://deb.nodesource.com/node_6.x jessie main" state=present
+
+- name: nodejs is installed
+  apt: name=nodejs state=present

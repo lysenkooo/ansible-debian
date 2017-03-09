@@ -1,0 +1,35 @@
+---
+
+- name: exim is installed
+  apt: name=exim4 state=present
+
+- name: config is installed
+  template: src="update-exim4.conf.j2" dest=/etc/exim4/update-exim4.conf.conf backup=yes
+  notify:
+    - update exim
+    - restart exim
+
+- name: set mailname
+  copy: content="{{ hostname }}\n" dest=/etc/mailname backup=yes
+  notify:
+    - restart exim
+
+- name: exim passwd file is installed
+  template: src="passwd.j2" dest=/etc/exim4/passwd.client backup=yes
+  when: yandex_password != ''
+  notify:
+    - restart exim
+
+- name: define local domains
+  replace:
+    dest: /etc/exim4/conf.d/main/01_exim4-config_listmacrosdefs
+    regexp: "MAIN_LOCAL_DOMAINS"
+    replace: "localhost"
+    backup: yes
+  notify:
+    - restart exim
+
+- name: exim rewrite file is installed
+  template: src="rewrite.j2" dest=/etc/exim4/conf.d/rewrite/00_exim4-config_header backup=yes
+  notify:
+    - restart exim

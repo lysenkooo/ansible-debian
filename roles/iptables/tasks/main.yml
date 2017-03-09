@@ -1,0 +1,9 @@
+---
+
+- name: iptables rules are installed
+  copy: src=rules dest=/etc/iptables backup=yes
+  notify:
+    - reload iptables
+
+- name: iptables added to autoload
+  copy: src=autoload dest=/etc/network/if-pre-up.d/iptables mode=0755 backup=yes

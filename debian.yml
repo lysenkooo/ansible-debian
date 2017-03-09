@@ -1,0 +1,66 @@
+---
+
+- name: provision debian web server
+  vars:
+    ruby_version: 2.3.3
+  remote_user: "{{ user }}"
+  hosts: all
+  become: yes
+  roles:
+    - role: essentials
+      tags: essentials
+
+    - role: swap
+      tags: swap
+
+    - role: iptables
+      tags: iptables
+
+    - role: nodejs
+      tags: nodejs
+
+    - role: rvm
+      tags: rvm
+
+    - role: ssl
+      tags: ssl
+
+    - role: nginx
+      tags: nginx
+
+    - role: redis
+      tags: redis
+
+    - role: postgresql
+      tags: postgresql
+
+    - role: exim
+      tags: exim
+      yandex_login: "{{ email }}"
+      yandex_password: "{{ lookup('env', 'YANDEX_PASSWORD') }}"
+
+    - role: redmine
+      tags: redmine
+
+    - role: openvpn
+      tags: openvpn
+
+    - role: tor
+      tags: tor
+
+    - role: haproxy
+      tags: haproxy
+
+    - role: deploy
+      tags:
+        - deploy
+        - rails
+      app_name: "rails"
+      git_repo: "git@bitbucket.org:username/repo.git"
+      git_branch: "master"
+      shared_dirs:
+        - tmp
+        - log
+      shared_files:
+        - .env
+      force: yes

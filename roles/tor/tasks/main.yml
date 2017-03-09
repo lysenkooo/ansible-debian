@@ -1,0 +1,12 @@
+---
+
+- name: tor is installed
+  apt: name=tor state=present
+
+- name: torrc is installed
+  copy: src=torrc dest=/etc/tor/torrc
+  notify:
+    - restart tor
+
+- name: renew script is installed
+  copy: src=tor_renew.exp dest=/usr/local/bin/tor_renew mode=0755

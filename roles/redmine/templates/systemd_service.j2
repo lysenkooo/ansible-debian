@@ -1,0 +1,14 @@
+[Unit]
+Description=Redmine
+After=network.target
+
+[Service]
+User={{ user }}
+Environment="RAILS_ENV=production"
+WorkingDirectory=/var/www/redmine/current
+ExecStart=/usr/local/rvm/wrappers/default/bundle exec rails s -e production -p 8080
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

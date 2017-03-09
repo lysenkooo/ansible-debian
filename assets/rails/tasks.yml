@@ -1,0 +1,82 @@
+---
+
+- set_fact: app_secret=4f68da922178dfe81e332ea1d8aa25412e56c0be9af36d7498c7ca5d9f5d4c2abf3257453cc3f597df4126e63d88f70464a386a1ba730e8ca5f091c69a61acc7
+- set_fact: db_name=app_production
+- set_fact: db_user=app
+- set_fact: db_password=pa55w0rd
+
+# database
+
+- name: database is created
+  postgresql_db: name="{{ db_name }}"
+  become_user: postgres
+
+- name: database user is created and has access to db
+  postgresql_user: db="{{ db_name }}" name="{{ db_user }}" password="{{ db_password }}" priv="ALL" role_attr_flags="SUPERUSER,CREATEDB"
+  become_user: postgres
+
+# backups
+
+- name: db credentials file is created
+  lineinfile:
+    dest: "/home/{{ user }}/.pgpass"
+    line: "localhost:5432:{{ db_name }}:{{ db_user }}:{{ db_password }}"
+    create: yes
+    mode: 0600
+  become_user: "{{ user }}"
+
+- name: backup dir exists
+  file:
+    path: "/var/backups/{{ app_name }}"
+    state: directory
+    recurse: yes
+    owner: "{{ user }}"
+
+- name: rotate backup is scheduled
+  cron:
+    name: rbackup
+    minute: 0
+    hour: 6
+    job: "BACKUP_DIR=/var/backups/{{ app_name }} BACKUP_EXT=-{{ db_name }}.sql.gpg /usr/bin/rbackup pg_dump --clean -h localhost -U {{ db_user }} -d {{ db_name }} | gpg -c -z 5 --batch --passphrase {{ app_secret }} >> /var/log/rbackup.log 2>&1"
+  become_user: "{{ user }}"
+
+# env
+
+- name: env file is installed
+  template:
+    src: "{{ playbook_dir }}/assets/{{ app_name }}/env.j2"
+    dest: "{{ app_shared_path }}/.env"
+  become_user: "{{ user }}"
+
+# routine
+
+- name: bundle install
+  shell: "cd {{ app_release_path }} && /usr/local/rvm/wrappers/default/bundle install --path {{ app_shared_path }}/bundle --deployment --without development test"
+  become_user: "{{ user }}"
+
+- name: precompile assets
+  shell: "cd {{ app_release_path }} && env $(cat .env | xargs) && /usr/local/rvm/wrappers/default/bundle exec rake assets:precompile"
+  args:
+    executable: /bin/bash
+  become_user: "{{ user }}"
+
+- name: migrate database
+  shell: "cd {{ app_release_path }} && env $(cat .env | xargs) && /usr/local/rvm/wrappers/default/bundle exec rake db:migrate"
+  args:
+    executable: /bin/bash
+  become_user: "{{ user }}"
+
+# sidekiq
+
+- name: sidekiq service is installed
+  template:
+    src: "{{ playbook_dir }}/assets/{{ app_name }}/systemd_sidekiq.j2"
+    dest: "/lib/systemd/system/{{ app_name }}-sidekiq.service"
+  register: sidekiq_service
+
+- name: reload systemd
+  command: systemctl daemon-reload
+  when: sidekiq_service.changed
+
+- name: service is started and enabled
+  service: name="{{ app_name }}-sidekiq" state=started enabled=yes

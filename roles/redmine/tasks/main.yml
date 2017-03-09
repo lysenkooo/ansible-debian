@@ -1,0 +1,63 @@
+---
+
+- name: redmine dir created
+  file: path=/var/www/redmine state=directory mode=0755 owner="{{ user }}" group="{{ user }}"
+
+- name: redmine database is created
+  postgresql_db: name="redmine"
+  become_user: postgres
+
+- name: redmine user has access to database
+  postgresql_user: db="redmine" name="redmine" password="redmine" priv=ALL role_attr_flags=SUPERUSER,CREATEDB
+  become_user: postgres
+
+- name: redmine is installed
+  subversion:
+    repo: http://svn.redmine.org/redmine/branches/3.3-stable
+    dest: /var/www/redmine/current
+  become_user: "{{ user }}"
+  register: pull
+
+- name: database config is installed
+  template: src=database.yml.j2 dest=/var/www/redmine/current/config/database.yml backup=yes
+
+- name: bundle install
+  shell: "/usr/local/rvm/wrappers/default/bundle install --without development test"
+  args:
+    chdir: /var/www/redmine/current
+  become_user: "{{ user }}"
+  when: pull.changed
+
+- name: generate secret
+  shell: "/usr/local/rvm/wrappers/default/bundle exec rake generate_secret_token"
+  args:
+    chdir: /var/www/redmine/current
+  environment:
+    RAILS_ENV: production
+  become_user: "{{ user }}"
+  when: pull.changed
+
+- name: migrate db
+  shell: "/usr/local/rvm/wrappers/default/bundle exec rake db:migrate"
+  args:
+    chdir: /var/www/redmine/current
+  environment:
+    RAILS_ENV: production
+  become_user: "{{ user }}"
+  when: pull.changed
+
+- name: nginx redmine site is installed
+  template: src=nginx_site.j2 dest="/etc/nginx/sites-available/redmine" backup=yes
+
+- name: nginx redmine config is enabled
+  file: src="/etc/nginx/sites-available/redmine" dest="/etc/nginx/sites-enabled/redmine" state=link
+  notify:
+    - restart nginx
+
+- name: systemd service is installed
+  template:
+    src: systemd_service.j2
+    dest: "/lib/systemd/system/redmine.service"
+
+- name: start redmine
+  service: name=redmine state=started enabled=yes

@@ -1,0 +1,55 @@
+---
+
+- name: get branch head hash
+  shell: "cd {{ app_path }}/repo && git rev-parse --short HEAD"
+  register: git_head
+
+- name: releases directory exists
+  file: path="{{ app_path }}/releases" state=directory
+
+- name: release is created
+  command: "rsync -r --exclude='.git' {{ app_path }}/repo/ {{ app_release_path }}"
+
+- name: create revision file in the release path
+  copy: content="{{ git_head.stdout }}" dest="{{ app_release_path }}/REVISION"
+
+- name: shared directory exists
+  file: path="{{ app_shared_path }}" state=directory
+
+- name: shared dirs are exist
+  file: path="{{ app_shared_path }}/{{ item }}" state=directory recurse=yes
+  with_items: "{{ shared_dirs }}"
+
+- name: dirs of shared files are exist
+  file: path="{{ app_shared_path }}/{{ item | dirname }}" state=directory recurse=yes
+  with_items: "{{ shared_files }}"
+
+- name: shared files are exist in release
+  copy:
+    content: ""
+    dest: "{{ app_release_path }}/{{ item }}"
+    force: no
+  with_items: "{{ shared_files }}"
+
+- name: shared files moved to shared folder if they dont exist
+  command: "cp -n {{ app_release_path }}/{{ item }} {{ app_shared_path }}/{{ item }}"
+  with_items: "{{ shared_files }}"
+
+- name: link paths are free
+  file:
+    path: "{{ app_release_path }}/{{ item }}"
+    state: absent
+  with_items: "{{ shared_dirs + shared_files }}"
+
+- name: links from release to shared are exist
+  file:
+    src: "{{ app_shared_path }}/{{ item }}"
+    path: "{{ app_release_path }}/{{ item }}"
+    state: link
+  with_items: "{{ shared_dirs + shared_files}}"
+
+- name: update current
+  file: src={{ app_release_path }} path={{ app_path }}/current state=link
+
+- name: clean old releases
+  shell: "cd {{ app_path }}/releases && ls -1 | sort -r | tail -n +4 | xargs rm -rf"

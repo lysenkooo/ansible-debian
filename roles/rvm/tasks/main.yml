@@ -1,0 +1,41 @@
+---
+
+- name: gpg key for rvm is installed
+  command: gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+  args:
+    creates: /root/.gnupg/secring.gpg
+
+- name: rvm is installed
+  shell: curl -sSL https://get.rvm.io | bash -s stable
+  args:
+    creates: /usr/local/rvm/scripts/rvm
+
+- name: add deploy user to rvm group
+  user: name="{{ user }}" groups=rvm append=yes
+
+- name: autoupdate is disabled
+  copy: content="rvm_autoupdate_flag=0\n" dest="/root/.rvmrc" backup=yes
+
+- name: rvm enabled for users
+  lineinfile:
+    line: "source /usr/local/rvm/scripts/rvm"
+    dest: "{{ item }}"
+    create: yes
+  with_items:
+    - "/root/.bash_profile"
+    - "/home/{{ user }}/.bash_profile"
+
+- name: ruby is installed
+  shell: "/usr/local/rvm/bin/rvm install {{ ruby_version }}"
+  args:
+    creates: "/usr/local/rvm/gems/ruby-{{ ruby_version }}"
+
+- name: default version of ruby is set
+  shell: "/usr/local/rvm/bin/rvm alias create default ruby-{{ ruby_version }}"
+  args:
+    creates: "/usr/local/rvm/config/alias"
+
+- name: bundler is installed
+  shell: "/usr/local/rvm/gems/ruby-{{ ruby_version }}/wrappers/gem install bundler"
+  args:
+    creates: "/usr/local/rvm/gems/ruby-{{ ruby_version }}/bin/bundler"

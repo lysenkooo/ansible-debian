@@ -1,0 +1,5 @@
+---
+
+user: deploy
+hostname: example.com
+email: no-reply@example.com

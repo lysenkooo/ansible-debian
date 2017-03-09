@@ -1,0 +1,36 @@
+upstream {{ app_name }}_backend {
+    server unix:{{ app_current_path }}/tmp/puma.sock;
+}
+
+server {
+    listen 80;
+
+    server_name {{ hostname }};
+
+    root       {{ app_current_path }}/public;
+    error_log  /var/log/nginx/{{ app_name }}_error.log;
+    access_log /var/log/nginx/{{ app_name }}_access.log;
+
+    error_page 404             /404.html;
+    error_page 500 502 503 504 /500.html;
+
+    location /assets {
+        access_log off;
+        expires max;
+        gzip_static on;
+    }
+
+    location / {
+        try_files $uri @app;
+    }
+
+    location @app {
+        proxy_pass http://{{ app_name }}_backend;
+        proxy_redirect off;
+        proxy_set_header Host $http_host;
+        proxy_set_header Referer $http_referer;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}

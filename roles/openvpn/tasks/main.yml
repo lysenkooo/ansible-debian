@@ -1,0 +1,4 @@
+---
+
+- name: openvpn is installed
+  apt: name=openvpn state=present

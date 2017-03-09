@@ -1,0 +1,36 @@
+#!/bin/sh
+
+BACKUP_PATH=$1
+SERVER_NAME=`uname -n`
+USER=`whoami`
+DATE=`date +%Y%m%d%H%M%S`
+EMAIL="no-reply@${SERVER_NAME}"
+
+if [ -z "${BACKUP_PATH}" ]; then
+    echo "No backup path supplied"
+    exit 1
+fi
+
+if [ "${USER}" = "root" ]; then
+    echo "You sholdn't be logged as root"
+    exit 1
+fi
+
+git config --global user.name "${SERVER_NAME}"
+git config --global user.email "${EMAIL}"
+
+sudo mkdir -p ${BACKUP_PATH}
+sudo chown ${USER}:${USER} ${BACKUP_PATH}
+cd ${BACKUP_PATH}
+
+if [ ! -d "${BACKUP_PATH}/.git" ]; then
+    git init
+fi
+
+sudo cp --parents -r /var/spool/cron/crontabs .
+sudo cp --parents -r /etc .
+sudo rm -f etc/shadow etc/shadow-
+
+sudo chown -R ${USER}:${USER} .
+
+git commit -a -m "${DATE}" && git push

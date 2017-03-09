@@ -1,0 +1,19 @@
+---
+
+- name: postgresql apt-key is added
+  apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+
+- name: postgresql repo is added
+  apt_repository: repo="deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main" state=present
+
+- name: postgresql is installed
+  apt: name="{{ item }}" state=present
+  with_items:
+    - postgresql-9.5
+    - postgresql-server-dev-9.5
+
+- name: postgresql is started
+  service: name=postgresql state=started enabled=yes
+
+- name: psycopg2 is installed
+  pip: name=psycopg2

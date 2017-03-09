@@ -1,0 +1,9 @@
+---
+
+- name: haproxy is installed
+  apt: name=haproxy state=present
+
+- name: config is installed
+  copy: src=haproxy.cfg dest=/etc/haproxy/haproxy.cfg
+  notify:
+    - restart haproxy

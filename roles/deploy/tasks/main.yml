@@ -1,0 +1,76 @@
+---
+
+- set_fact: app_path="/var/www/{{ app_name }}"
+- set_fact: app_current_path="{{ app_path }}/current"
+- set_fact: app_shared_path="{{ app_path }}/shared"
+- set_fact: datetime="{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+- set_fact: app_release_path="{{ app_path }}/releases/{{ datetime }}"
+
+- name: app is updated
+  git:
+    repo: "{{ git_repo }}"
+    dest: "{{ app_path }}/repo"
+    accept_hostkey: true
+  become_user: "{{ user }}"
+  register: pull
+
+- stat: path="{{ app_current_path }}"
+  register: current_path_info
+
+- set_fact: updated="{{ current_path_info.stat.exists == false or pull.changed or (force is defined and force) }}"
+
+- name: make new release
+  include: release.yml
+  become_user: "{{ user }}"
+  when: updated
+
+- name: do project related routine
+  include: "{{ item }}"
+  with_first_found:
+    - files:
+      - "{{ playbook_dir }}/assets/{{ app_name }}/tasks.yml"
+      skip: true
+  when: updated
+
+- name: systemd service is installed
+  template:
+    src: "{{ item }}"
+    dest: "/lib/systemd/system/{{ app_name }}.service"
+  with_first_found:
+    - files:
+      - "{{ playbook_dir }}/assets/{{ app_name }}/systemd_service.j2"
+      - systemd_service.j2
+  register: service
+
+- name: logrotate config installed
+  template:
+    src: logrotate.j2
+    dest: "/etc/logrotate.d/{{ app_name }}"
+
+- name: reload systemd
+  command: systemctl daemon-reload
+  when: service.changed
+
+- name: service is started and enabled
+  service: name="{{ app_name }}" state=started enabled=yes
+
+- name: service is restarted
+  service: name="{{ app_name }}" state=restarted
+  when: service.changed or updated
+
+- name: nginx site is installed
+  template: src="{{ item }}" dest="/etc/nginx/sites-available/{{ app_name }}" backup=yes
+  with_first_found:
+    - files:
+      - "{{ playbook_dir }}/assets/{{ app_name }}/nginx_site.j2"
+      - nginx_site.j2
+  notify:
+    - restart nginx
+
+- name: nginx site is enabled
+  file:
+    src: "/etc/nginx/sites-available/{{ app_name }}"
+    dest: "/etc/nginx/sites-enabled/{{ app_name }}"
+    state: link
+  notify:
+    - restart nginx

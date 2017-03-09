@@ -1,0 +1,25 @@
+#!/bin/sh
+
+BACKUP_COMMAND="$@"
+TIME=`date +%Y%m%d%H%M%S`
+PWD=`pwd`
+
+if [ -z "${BACKUP_DIR}" ] || [ -z "${BACKUP_COMMAND}" ]; then
+    echo "You need to specify command and BACKUP_DIR variable, for example:\n"
+    echo "BACKUP_DIR=/var/backups/project BACKUP_EXT=-dbname.sql.gpg /usr/bin/rbackup \"pg_dump --clean -h localhost -U username -d dbname | gpg -c -z 5 --batch --passphrase secret\" >> /var/log/rbackup.log 2>&1"
+    exit 1
+fi
+
+BACKUP_PATH="${BACKUP_DIR}/${TIME}${BACKUP_EXT}"
+BACKUP_EXEC="${BACKUP_COMMAND} > ${BACKUP_PATH}"
+
+echo "Backup ${TIME} from ${PWD}: ${BACKUP_EXEC}"
+
+mkdir -p "${BACKUP_DIR}"
+eval "${BACKUP_EXEC}"
+
+for DAY in `seq 3 30`; do
+    find "${BACKUP_DIR}" -type f -name "*${BACKUP_EXT}" -ctime ${DAY} -print0 | sort | tail -n +1 | xargs -0 -I % sh -c "echo 'Delete: %' && rm -f '%'"
+done
+
+find "${BACKUP_DIR}" -type f -name "*${BACKUP_EXT}" -ctime +30 -print0 | xargs -0 -I % sh -c "echo 'Delete: %' && rm -f '%'"

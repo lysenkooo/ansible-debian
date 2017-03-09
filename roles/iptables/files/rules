@@ -1,0 +1,35 @@
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+:LOGGING - [0:0]
+
+# create logging chain
+-A LOGGING -m limit --limit 5/min -j LOG --log-prefix "IPTABLES: " --log-level 7
+
+# default rules
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -m icmp -p icmp --icmp-type 3 -j ACCEPT
+-A INPUT -m icmp -p icmp --icmp-type 8 -j ACCEPT
+-A INPUT -m icmp -p icmp --icmp-type 12 -j ACCEPT
+
+# accept ssh
+-A INPUT -m tcp -p tcp --dport 22 -j ACCEPT
+
+# accept http
+-A INPUT -m tcp -p tcp --dport 80 -j ACCEPT
+-A INPUT -m tcp -p tcp --dport 443 -j ACCEPT
+
+# logging another requests and reject them
+-A INPUT -j LOGGING
+-A INPUT -j REJECT --reject-with icmp-port-unreachable
+
+# logging and reject all forward requests
+-A FORWARD -j LOGGING
+-A FORWARD -j REJECT --reject-with icmp-port-unreachable
+
+# accept all output requests
+-A OUTPUT -j ACCEPT
+
+COMMIT

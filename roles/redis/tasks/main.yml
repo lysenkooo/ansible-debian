@@ -1,0 +1,7 @@
+---
+
+- name: redis is installed
+  apt: name=redis-server state=present
+
+- name: redis is started
+  service: name=redis-server state=started enabled=yes

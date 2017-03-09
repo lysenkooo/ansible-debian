@@ -1,0 +1,16 @@
+---
+
+- name: nginx is installed
+  apt: name=nginx state=present
+
+- name: nginx is started
+  service: name=nginx state=started enabled=yes
+  ignore_errors: yes
+
+- name: nginx default config is disabled
+  file: path="/etc/nginx/sites-enabled/default" state=absent
+  notify:
+    - restart nginx
+
+- name: /var/www is created
+  file: path=/var/www state=directory mode=0755 owner="{{ user }}" group="{{ user }}"
