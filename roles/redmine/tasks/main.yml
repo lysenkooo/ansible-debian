@@ -47,6 +47,8 @@
 
 - name: nginx redmine site is installed
   template: src=nginx_site.j2 dest="/etc/nginx/sites-available/redmine" backup=yes
+  notify:
+    - restart nginx
 
 - name: nginx redmine config is enabled
   file: src="/etc/nginx/sites-available/redmine" dest="/etc/nginx/sites-enabled/redmine" state=link
