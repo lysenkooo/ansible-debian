@@ -25,7 +25,6 @@
   shell: "/usr/local/rvm/wrappers/default/bundle install --without development test"
   args:
     chdir: /var/www/redmine/current
-  become_user: "{{ user }}"
   when: pull.changed
 
 - name: generate secret

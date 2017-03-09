@@ -13,7 +13,7 @@ Run on the remote machine:
 
 Then on local machine:
 
-```
+```sh
 $ ssh-copy-id deploy@hostname
 $ make provision
 ```
@@ -22,7 +22,7 @@ $ make provision
 
 Just run:
 
-```
+```sh
 make vagrant
 ```
 
@@ -30,6 +30,6 @@ make vagrant
 
 To generate ssl certificate on host:
 
-```
+```sh
 sudo certbot certonly --webroot -w /var/www/app/current/public -d example.com
 ```

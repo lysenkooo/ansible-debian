@@ -55,13 +55,13 @@
   become_user: "{{ user }}"
 
 - name: precompile assets
-  shell: "cd {{ app_release_path }} && env $(cat .env | xargs) && /usr/local/rvm/wrappers/default/bundle exec rake assets:precompile"
+  shell: "cd {{ app_release_path }} && export $(cat .env | xargs) && /usr/local/rvm/wrappers/default/bundle exec rake assets:precompile"
   args:
     executable: /bin/bash
   become_user: "{{ user }}"
 
 - name: migrate database
-  shell: "cd {{ app_release_path }} && env $(cat .env | xargs) && /usr/local/rvm/wrappers/default/bundle exec rake db:migrate"
+  shell: "cd {{ app_release_path }} && export $(cat .env | xargs) && /usr/local/rvm/wrappers/default/bundle exec rake db:migrate"
   args:
     executable: /bin/bash
   become_user: "{{ user }}"
