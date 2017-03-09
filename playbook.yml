@@ -60,4 +60,4 @@
         - log
       shared_files:
         - .env
-      force: yes
+      force: no

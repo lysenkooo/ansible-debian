@@ -14,7 +14,6 @@ Vagrant.configure(2) do |config|
 
   config.vm.provision 'ansible' do |ansible|
     ansible.playbook = 'playbook.yml'
-    ansible.verbose = 'v'
     ansible.groups = {
       vagrant: MACHINES.keys
     }
