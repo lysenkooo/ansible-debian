@@ -10,9 +10,6 @@
   args:
     creates: /usr/local/rvm/scripts/rvm
 
-- name: add deploy user to rvm group
-  user: name="{{ user }}" groups=rvm append=yes
-
 - name: autoupdate is disabled
   copy: content="rvm_autoupdate_flag=0\n" dest="/root/.rvmrc" backup=yes
 

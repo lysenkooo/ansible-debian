@@ -54,8 +54,11 @@
     regexp: "^%wheel"
     validate: 'visudo -cf %s'
 
+- name: rvm group is created
+  group: name=rvm state=present
+
 - name: deploy user has ssh key
-  user: name="{{ user }}" groups=wheel shell=/bin/bash generate_ssh_key=yes
+  user: name="{{ user }}" groups="wheel,rvm" shell=/bin/bash generate_ssh_key=yes
 
 - name: redirect deploy user emails to root
   lineinfile:
