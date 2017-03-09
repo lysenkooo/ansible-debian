@@ -2,7 +2,7 @@
 
 - name: provision debian web server
   vars:
-    ruby_version: 2.3.3
+    ruby_version: 2.2.2
   remote_user: "{{ user }}"
   hosts: all
   become: yes
@@ -54,10 +54,10 @@
     - role: deploy
       tags:
         - deploy
-        - rails
-      app_name: "rails"
-      git_repo: "git@bitbucket.org:username/repo.git"
-      git_branch: "master"
+        - kanban
+      app_name: kanban
+      git_repo: https://github.com/somlor/kanban
+      git_branch: master
       shared_dirs:
         - tmp
         - log

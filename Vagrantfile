@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 MACHINES = {
-  'app01' => '192.168.56.101',
+  'debian01' => '192.168.56.101',
 }.freeze
 
 Vagrant.configure(2) do |config|
@@ -13,7 +13,7 @@ Vagrant.configure(2) do |config|
   config.ssh.insert_key = false
 
   config.vm.provision 'ansible' do |ansible|
-    ansible.playbook = 'debian.yml'
+    ansible.playbook = 'playbook.yml'
     ansible.verbose = 'v'
     ansible.groups = {
       vagrant: MACHINES.keys

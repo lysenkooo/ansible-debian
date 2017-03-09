@@ -1,9 +1,9 @@
 ---
 
 - set_fact: app_secret=4f68da922178dfe81e332ea1d8aa25412e56c0be9af36d7498c7ca5d9f5d4c2abf3257453cc3f597df4126e63d88f70464a386a1ba730e8ca5f091c69a61acc7
-- set_fact: db_name=app_production
-- set_fact: db_user=app
-- set_fact: db_password=pa55w0rd
+- set_fact: db_name=kanban_production
+- set_fact: db_user=kanban
+- set_fact: db_password=kanban
 
 # database
 

@@ -1,9 +1,9 @@
 upstream {{ app_name }}_backend {
-    server unix:{{ app_current_path }}/tmp/puma.sock;
+    server 127.0.0.1:3000;
 }
 
 server {
-    listen 80;
+    listen 80 default_server;
 
     server_name {{ hostname }};
 
