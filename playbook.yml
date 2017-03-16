@@ -61,3 +61,13 @@
       shared_files:
         - .env
       force: no
+
+  tasks:
+    - name: env variables are set
+      lineinfile:
+        dest: "/home/{{ user }}/.bash_profile"
+        line: "{{ item }}"
+        create: yes
+      with_items:
+        - "ENV=production"
+        - "RAILS_ENV=production"

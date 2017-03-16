@@ -101,15 +101,16 @@
   cron: name=gbackup minute=0 hour=3 job="/usr/bin/gbackup /var/backups/cfg >> /var/log/gbackup.log 2>&1"
   become_user: "{{ user }}"
 
-- name: variables are set
+- name: env variables are set
   lineinfile:
     dest: "/home/{{ user }}/.bash_profile"
     line: "{{ item }}"
     create: yes
   with_items:
     - "EDITOR=vim"
-    - "ENV=production"
-    - "RAILS_ENV=production"
+
+- name: welcome script is installed
+  copy: src=welcome.sh dest=/etc/profile.d/welcome.sh
 
 - name: swap tasks
   include: swap.yml
