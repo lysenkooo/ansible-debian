@@ -1,5 +1,21 @@
 # Debian Web Server Playbook
 
+Clone this repo to your local machine with submodules:
+
+```sh
+git clone https://github.com/lysenkooo/ansible-debian.git
+```
+
+## Vagrant
+
+Just run:
+
+```sh
+make vagrant
+```
+
+## Production
+
 Run on the remote machine:
 
 ```sh
@@ -16,14 +32,6 @@ Then on local machine:
 ```sh
 $ ssh-copy-id deploy@hostname
 $ make provision
-```
-
-## Vagrant
-
-Just run:
-
-```sh
-make vagrant
 ```
 
 ## Let's Encrypt

@@ -1,5 +1,14 @@
+.PHONY: help vagrant provision deploy
+
 help:
-	@echo 'Use make provision or make deploy'
+	@echo 'Available targets:'
+	@echo '  make vagrant'
+	@echo '  make provision'
+	@echo '  make deploy'
+
+vagrant:
+	ssh-add
+	vagrant up --provision
 
 provision:
 	ansible-playbook -i hosts.ini playbook.yml --skip-tags deploy
@@ -7,9 +16,3 @@ provision:
 deploy:
 	ssh-add
 	ansible-playbook -i hosts.ini playbook.yml --tags deploy
-
-vagrant:
-	ssh-add
-	vagrant up --provision
-
-.PHONY: help provision deploy vagrant
