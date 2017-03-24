@@ -7,5 +7,5 @@
   command: dpkg-reconfigure --frontend noninteractive tzdata
 
 - name: sync time
-  command: ntpdate pool.ntp.org ntp.ix.ru
+  command: ntpdate -u pool.ntp.org ntp.ix.ru
   ignore_errors: yes
