@@ -1,6 +1,14 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+playbook = if ENV.fetch('PLAYBOOK', nil)
+             "playbook.#{ENV.fetch('PLAYBOOK')}.yml".freeze
+           else
+             'playbook.yml'.freeze
+           end
+
+abort "Playbook #{playbook} doesn't exist!" unless File.exist?(playbook)
+
 MACHINES = {
   'debian01' => '192.168.56.101',
 }.freeze
@@ -13,7 +21,7 @@ Vagrant.configure(2) do |config|
   config.ssh.insert_key = false
 
   config.vm.provision 'ansible' do |ansible|
-    ansible.playbook = 'playbook.yml'
+    ansible.playbook = playbook
     ansible.groups = {
       vagrant: MACHINES.keys
     }
