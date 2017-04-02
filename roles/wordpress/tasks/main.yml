@@ -1,0 +1,81 @@
+---
+- set_fact: www_directory="/var/www/{{ wordpress_domain }}/www"
+
+- name: create WordPress directory
+  file:
+    path="/var/www/{{ wordpress_domain }}/{{ item }}"
+    state=directory
+    recurse=yes
+    owner=www-data
+    group=www-data
+  with_items:
+    - bin
+    - tmp
+    - www
+    - logs
+
+- name: check if WordPress already installed
+  stat: path="{{ www_directory }}/wp-config-sample.php"
+  register: wordpress_config_sample
+
+- name: download and unarchive latest WordPress archive
+  unarchive:
+    src: https://wordpress.org/latest.tar.gz
+    dest: "/var/www/{{ wordpress_domain }}/tmp"
+    remote_src: true
+    owner: www-data
+    group: www-data
+  when: wordpress_config_sample.stat.exists == False
+
+- name: move files to www directory
+  shell: mv /var/www/{{ wordpress_domain }}/tmp/wordpress/* {{ www_directory }}
+  when: wordpress_config_sample.stat.exists == False
+
+- name: remove unarchived temporary files
+  file:
+    path: "/var/www/{{ wordpress_domain }}/tmp/wordpress"
+    state: absent
+
+- name: copy wp-config-sample.php to wp-config.php
+  command: cp {{ www_directory }}/wp-config-sample.php {{ www_directory }}/wp-config.php
+  when: wordpress_config_sample.stat.exists == False
+
+- name: set permissions to wp-config.php
+  file:
+    path: "{{ www_directory }}/wp-config.php"
+    owner: www-data
+    group: www-data
+    mode: 0600
+
+- name: remove unnecessary files
+  file:
+    path: "{{ www_directory }}/{{ item }}"
+    state: absent
+  with_items:
+    - license.txt
+    - readme.html
+
+- name: set credentials in wp-config.php
+  lineinfile:
+    dest: "{{ www_directory }}/wp-config.php"
+    state: present
+    line: "define('{{ item.key }}', '{{ item.value }}');"
+    regexp: "{{ item.key }}"
+  with_items:
+    - { key: 'DB_NAME', value: "{{ mysql_database }}" }
+    - { key: 'DB_USER', value: "{{ mysql_user }}" }
+    - { key: 'DB_PASSWORD', value: "{{ mysql_password }}" }
+
+- name: add config to nginx
+  template:
+    src=wordpress.j2
+    dest=/etc/nginx/sites-available/{{ wordpress_domain }}.conf
+    backup=yes
+
+- name: create symlink for nginx config
+  file:
+    src: /etc/nginx/sites-available/{{ wordpress_domain }}.conf
+    dest: /etc/nginx/sites-enabled/{{ wordpress_domain }}.conf
+    state: link
+  notify:
+    - restart nginx

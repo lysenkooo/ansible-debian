@@ -1,0 +1,55 @@
+---
+
+# TODO: Change default MariaDB root password
+
+- name: libmysqlclient-dev is installed (for pip)
+  apt: name=libmysqlclient-dev state=present
+
+- name: mariadb-server is installed
+  apt: name=mariadb-server state=present
+
+- name: mariadb-server is started and enabled
+  service: name=mysql state=started enabled=true
+  ignore_errors: yes
+
+- name: change MySQL settings
+  lineinfile:
+    dest: /etc/mysql/my.cnf
+    state: present
+    line: "{{ item.key }} = {{ item.value }}"
+    regexp: "^(.*){{ item.key }}"
+  with_items:
+    - { key: 'bind-address', value: '127.0.0.1' }
+    - { key: 'key_buffer', value: '16M' }
+    - { key: 'max_allowed_packet', value: '16M' }
+    - { key: 'thread_stack', value: '192K' }
+    - { key: 'thread_cache_size', value: '8' }
+    - { key: 'query_cache_limit', value: '1M' }
+    - { key: 'query_cache_size', value: '20M' }
+  notify:
+    - restart mysql
+
+- name: install MySQL-python module for mysql_db and mysql_user modules
+  pip:
+    name: MySQL-python
+    state: present
+
+- name: create database if mysql_database is present
+  mysql_db:
+    name: "{{ mysql_database }}"
+    collation: 'utf8_general_ci'
+    encoding: 'utf8'
+    state: present
+  when: mysql_database is defined
+
+- name: create user if mysql_user is present
+  mysql_user:
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_password }}"
+    priv: "{{ mysql_database }}.*:ALL"
+    append_privs: true
+    state: present
+  when: mysql_user is defined and mysql_database is defined
+
+# TODO: Install mysqltuner
+# https://www.linode.com/docs/databases/mariadb/mariadb-setup-debian7

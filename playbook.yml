@@ -14,6 +14,16 @@
     - role: iptables
       tags: iptables
 
+    - role: mysql
+      tags: mysql
+      vars:
+        mysql_database: 'database_name'
+        mysql_user: 'user_name'
+        mysql_password: 'user_password'
+
+    - role: php
+      tags: php
+
     - role: nodejs
       tags: nodejs
 
@@ -25,6 +35,11 @@
 
     - role: nginx
       tags: nginx
+
+    - role: wordpress
+      vars:
+        wordpress_domain: 'example.com'
+      tags: wordpress
 
     - role: redis
       tags: redis
