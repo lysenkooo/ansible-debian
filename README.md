@@ -14,6 +14,14 @@ Just run:
 make vagrant
 ```
 
+### Use custom playbook for Vagrant
+
+If you want to use your custom playbook (eg. playbook.local.yml) then run:
+
+```sh
+PLAYBOOK=local make vagrant
+```
+
 ## Production
 
 Run on the remote machine:
