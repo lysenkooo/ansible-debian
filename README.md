@@ -26,6 +26,14 @@ Just run:
 make vagrant
 ```
 
+### Use custom playbook for Vagrant
+
+If you want to use your custom playbook (eg. playbook.local.yml) then run:
+
+```sh
+PLAYBOOK=local make vagrant
+```
+
 ## Let's Encrypt
 
 To generate ssl certificate on host:
