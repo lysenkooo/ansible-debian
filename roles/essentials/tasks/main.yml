@@ -86,7 +86,7 @@
   locale_gen: name=ru_RU.UTF-8 state=present
 
 - name: set time zone
-  copy: content="Europe/Moscow\n" dest=/etc/timezone mode=0644 owner=root group=root backup=yes
+  copy: content="{{ timezone }}\n" dest=/etc/timezone mode=0644 owner=root group=root backup=yes
   notify:
     - update timezone
     - sync time
