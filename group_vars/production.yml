@@ -3,3 +3,6 @@
 user: deploy
 hostname: example.com
 email: no-reply@example.com
+
+mysql_credentials:
+  - { database: 'example_com', username: 'example_com', password: 'example_com' }

@@ -34,22 +34,24 @@
     name: MySQL-python
     state: present
 
-- name: create database if mysql_database is present
+- name: create databases
   mysql_db:
-    name: "{{ mysql_database }}"
+    name: "{{ item.database }}"
     collation: 'utf8_general_ci'
     encoding: 'utf8'
     state: present
-  when: mysql_database is defined
+  with_items: "{{ mysql_credentials }}"
+  when: mysql_credentials is defined
 
-- name: create user if mysql_user is present
+- name: create users
   mysql_user:
-    name: "{{ mysql_user }}"
-    password: "{{ mysql_password }}"
-    priv: "{{ mysql_database }}.*:ALL"
+    name: "{{ item.username }}"
+    password: "{{ item.password }}"
+    priv: "{{ item.database }}.*:ALL"
     append_privs: true
     state: present
-  when: mysql_user is defined and mysql_database is defined
+  with_items: "{{ mysql_credentials }}"
+  when: mysql_credentials is defined
 
 # TODO: Install mysqltuner
 # https://www.linode.com/docs/databases/mariadb/mariadb-setup-debian7
