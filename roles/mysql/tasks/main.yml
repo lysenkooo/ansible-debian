@@ -34,6 +34,12 @@
     name: MySQL-python
     state: present
 
+- name: Removes all anonymous user accounts
+  mysql_user:
+    name: ''
+    host_all: yes
+    state: absent
+
 - name: create databases
   mysql_db:
     name: "{{ item.database }}"
