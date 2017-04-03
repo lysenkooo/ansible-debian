@@ -1,0 +1,60 @@
+---
+
+- name: add dotdeb.org's GPG key
+  apt_key:
+    url: https://www.dotdeb.org/dotdeb.gpg
+    state: present
+
+# If this repository is not available you must choose another one from https://www.dotdeb.org/mirrors/
+- name: add dotdeb.org's mirror repository
+  apt_repository:
+    repo: "deb http://dotdeb.netmirror.org jessie all"
+    state: present
+    update_cache: yes
+
+- name: add dotdeb.org's mirror sources repository
+  apt_repository:
+    repo: "deb-src http://dotdeb.netmirror.org jessie all"
+    state: present
+    update_cache: yes
+
+- name: PHP 7 is installed
+  apt: name={{ item }} state=present
+  with_items:
+   - php7.0-cli
+   - php7.0-curl
+   - php7.0-dev
+   - php7.0-zip
+   - php7.0-fpm
+   - php7.0-gd
+   - php7.0-xml
+   - php7.0-mysql
+   - php7.0-mcrypt
+   - php7.0-mbstring
+   - php7.0-opcache
+
+- name: change php-fpm settings
+  lineinfile:
+    dest: /etc/php/7.0/fpm/pool.d/www.conf
+    state: present
+    line: "{{ item.key }} = {{ item.value }}"
+    regexp: "^(.*){{ item.key }}"
+  with_items:
+    - { key: 'pm.max_children', value: 10 }
+    - { key: 'pm.max_requests', value: 200 }
+  notify:
+    - restart php-fpm
+
+- name: change php.ini settings
+  lineinfile:
+    dest: /etc/php/7.0/fpm/php.ini
+    state: present
+    line: "{{ item.key }} = {{ item.value }}"
+    regexp: "^(.*){{ item.key }}"
+  with_items:
+    - { key: 'date.timezone', value: "{{ timezone }}" }
+    - { key: 'upload_max_filesize', value: '8M' }
+    - { key: 'max_execution_time', value: 60 }
+    - { key: 'max_input_vars', value: 5000 }
+  notify:
+    - restart php-fpm

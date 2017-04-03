@@ -1,0 +1,32 @@
+---
+
+- name: provision Debian web server with WordPress
+  vars:
+    timezone: 'Europe/Moscow'
+  remote_user: "{{ user }}"
+  hosts: all
+  become: yes
+  roles:
+    - role: essentials
+      tags: essentials
+
+    - role: iptables
+      tags: iptables
+
+    - role: nginx
+      tags: nginx
+
+    - role: mysql
+      tags: mysql
+      vars:
+        mysql_database: 'example_com'
+        mysql_user: 'example_com'
+        mysql_password: 'pJmhQfaucQFN9edm'
+
+    - role: php
+      tags: php
+
+    - role: wordpress
+      vars:
+        wordpress_domain: 'example.com'
+      tags: wordpress
