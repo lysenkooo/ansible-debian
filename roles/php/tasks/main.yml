@@ -58,3 +58,25 @@
     - { key: 'max_input_vars', value: 5000 }
   notify:
     - restart php-fpm
+
+- name: change fastcgi_params in nginx
+  lineinfile:
+    dest: /etc/nginx/fastcgi_params
+    state: present
+    line: "{{ item.key }} {{ item.value }};"
+    regexp: "^(.*){{ item.key }}"
+  with_items:
+    - { key: 'fastcgi_pass',                 value: "unix:/var/run/php/$php_fpm_socket.socket" }
+    - { key: 'fastcgi_index',                value: "index.php" }
+    - { key: 'fastcgi_param',                value: "SCRIPT_FILENAME $root_path$fastcgi_script_name" }
+    - { key: 'fastcgi_intercept_errors',     value: "on" }
+    - { key: 'fastcgi_connect_timeout',      value: "600s" }
+    - { key: 'fastcgi_send_timeout',         value: "600s" }
+    - { key: 'fastcgi_read_timeout',         value: "600s" }
+    - { key: 'fastcgi_buffer_size',          value: "128k" }
+    - { key: 'fastcgi_buffers',              value: "8 256k" }
+    - { key: 'fastcgi_busy_buffers_size',    value: "256k" }
+    - { key: 'fastcgi_temp_file_write_size', value: "256k" }
+  notify:
+    - restart php-fpm
+    - restart nginx
