@@ -1,0 +1,57 @@
+---
+
+- name: add backports repository
+  apt_repository:
+    repo: "deb http://http.debian.net/debian jessie-backports main"
+    state: present
+    update_cache: yes
+
+- name: essentials are installed
+  apt: name="{{ item }}" state=present
+  with_items:
+    - sudo
+    - curl
+    - wget
+    - vim
+    - mailutils
+    - git
+    - screen
+    - ntpdate
+    - apt-transport-https
+    - lsb-release
+    - fail2ban
+    - zip
+    - unzip
+    - libicu-dev
+    - libxml2
+    - subversion
+    - python-pip
+    - python-dev
+    - libmagickwand-dev
+    - imagemagick
+    - logrotate
+    - expect
+
+- name: set hostname
+  hostname: name="{{ inventory_hostname }}"
+
+- name: welcome script is installed
+  copy: src=welcome.sh dest=/etc/profile.d/welcome.sh
+
+- name: rotate backup script is installed
+  copy: src=rbackup dest=/usr/bin/rbackup mode=0755
+
+- name: en_US locale is installed
+  locale_gen: name=en_US.UTF-8 state=present
+
+- name: ru_RU locale is installed
+  locale_gen: name=ru_RU.UTF-8 state=present
+
+- name: set time zone
+  copy: content="Europe/Moscow\n" dest=/etc/timezone mode=0644 owner=root group=root backup=yes
+  notify:
+    - update timezone
+
+- name: sync time
+  command: ntpdate -u pool.ntp.org ntp.ix.ru
+  changed_when: false

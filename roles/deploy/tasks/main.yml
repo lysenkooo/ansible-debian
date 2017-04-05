@@ -1,10 +1,18 @@
 ---
 
+- set_fact: datetime="{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+  run_once: true
+
 - set_fact: app_path="/var/www/{{ app_name }}"
 - set_fact: app_current_path="{{ app_path }}/current"
 - set_fact: app_shared_path="{{ app_path }}/shared"
-- set_fact: datetime="{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
 - set_fact: app_release_path="{{ app_path }}/releases/{{ datetime }}"
+
+- set_fact: nginx_site_path="/etc/nginx/sites-available/{{ app_name }}"
+  when: ansible_distribution == 'Debian'
+
+- set_fact: nginx_site_path="/etc/nginx/conf.d/{{ app_name }}.conf"
+  when: ansible_distribution == 'CentOS'
 
 - name: app is updated
   git:
@@ -30,6 +38,14 @@
     - files:
       - "{{ playbook_dir }}/assets/{{ app_name }}/tasks.yml"
       skip: true
+  when: updated
+
+- name: update current
+  file: src={{ app_release_path }} path={{ app_path }}/current state=link
+  when: updated
+
+- name: clean old releases
+  shell: "cd {{ app_path }}/releases && ls -1 | sort -r | tail -n +4 | xargs rm -rf"
   when: updated
 
 - name: systemd service is installed
@@ -59,7 +75,7 @@
   when: service.changed or updated
 
 - name: nginx site is installed
-  template: src="{{ item }}" dest="/etc/nginx/sites-available/{{ app_name }}" backup=yes
+  template: src="{{ item }}" dest="{{ nginx_site_path }}" backup=yes
   with_first_found:
     - files:
       - "{{ playbook_dir }}/assets/{{ app_name }}/nginx_site.j2"
@@ -74,3 +90,4 @@
     state: link
   notify:
     - restart nginx
+  when: ansible_distribution == 'Debian'

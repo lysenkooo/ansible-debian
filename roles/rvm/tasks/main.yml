@@ -13,6 +13,12 @@
 - name: autoupdate is disabled
   copy: content="rvm_autoupdate_flag=0\n" dest="/root/.rvmrc" backup=yes
 
+- name: rvm group is created
+  group: name=rvm state=present
+
+- name: deploy user added to rvm group
+  user: name="{{ user }}" groups="rvm" append=yes
+
 - name: rvm enabled for users
   lineinfile:
     line: "source /usr/local/rvm/scripts/rvm"

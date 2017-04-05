@@ -1,0 +1,12 @@
+---
+
+- name: pureftpd is installed
+  apt: name=pure-ftpd-postgresql state=present
+
+- name: pureftpd is started and enabled
+  service: name=pure-ftpd-postgresql state=started enabled=yes
+
+- name: set passive ports
+  copy:
+    dest: /etc/pure-ftpd/conf/PassivePortRange
+    content: "30000 31000"

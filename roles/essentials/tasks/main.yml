@@ -1,116 +1,13 @@
 ---
 
-- name: add backports repository
-  apt_repository:
-    repo: "deb http://http.debian.net/debian jessie-backports main"
-    state: present
-    update_cache: yes
+- include: essentials.yml
 
-- name: essentials are installed
-  apt: name="{{ item }}" state=present
-  with_items:
-    - sudo
-    - curl
-    - wget
-    - vim
-    - mailutils
-    - git
-    - screen
-    - ntpdate
-    - apt-transport-https
-    - lsb-release
-    - fail2ban
-    - zip
-    - unzip
-    - libicu-dev
-    - libxml2
-    - subversion
-    - python-pip
-    - python-dev
-    - libmagickwand-dev
-    - imagemagick
-    - logrotate
-    - expect
+- include: gbackup.yml
 
-- name: sudo group is created
-  group: name=sudo state=present
+- include: swap.yml
 
-- name: sudo users can sudo with password
-  lineinfile:
-    dest: /etc/sudoers
-    state: present
-    line: "%sudo ALL=(ALL:ALL) ALL"
-    regexp: "^%sudo"
-    validate: 'visudo -cf %s'
+- include: security.yml
 
-- name: wheel group is created
-  group: name=wheel state=present
+- include: users.yml
 
-- name: wheel users can sudo without password
-  lineinfile:
-    dest: /etc/sudoers
-    state: present
-    line: "%wheel ALL=(ALL:ALL) NOPASSWD: ALL"
-    regexp: "^%wheel"
-    validate: 'visudo -cf %s'
-
-- name: rvm group is created
-  group: name=rvm state=present
-
-- name: deploy user has ssh key
-  user: name="{{ user }}" groups="wheel,rvm" shell=/bin/bash generate_ssh_key=yes
-
-- name: redirect deploy user emails to root
-  lineinfile:
-    dest: /etc/aliases
-    state: present
-    line: "{{ user }}: root"
-    regexp: "^{{ user }}:"
-
-- name: all emails sent to admin address
-  lineinfile:
-    dest: /etc/aliases
-    state: present
-    line: "root: {{ email }}"
-    regexp: "^root:"
-
-- name: root login via ssh is disabled
-  lineinfile: dest=/etc/ssh/sshd_config state=present line="PermitRootLogin no" regexp="^#?PermitRootLogin"
-  notify:
-    - restart sshd
-
-- name: en_US locale is installed
-  locale_gen: name=en_US.UTF-8 state=present
-
-- name: ru_RU locale is installed
-  locale_gen: name=ru_RU.UTF-8 state=present
-
-- name: set time zone
-  copy: content="{{ timezone }}\n" dest=/etc/timezone mode=0644 owner=root group=root backup=yes
-  notify:
-    - update timezone
-    - sync time
-
-- name: rotate backup script is installed
-  copy: src=rbackup dest=/usr/bin/rbackup mode=0755
-
-- name: git backup script is installed
-  copy: src=gbackup dest=/usr/bin/gbackup mode=0755
-
-- name: git backup script is added to crontab
-  cron: name=gbackup minute=0 hour=3 job="/usr/bin/gbackup /var/backups/cfg >> /var/log/gbackup.log 2>&1"
-  become_user: "{{ user }}"
-
-- name: env variables are set
-  lineinfile:
-    dest: "/home/{{ user }}/.bash_profile"
-    line: "{{ item }}"
-    create: yes
-  with_items:
-    - "EDITOR=vim"
-
-- name: welcome script is installed
-  copy: src=welcome.sh dest=/etc/profile.d/welcome.sh
-
-- name: swap tasks
-  include: swap.yml
+- include: mail.yml

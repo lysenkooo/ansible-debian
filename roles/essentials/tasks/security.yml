@@ -1,0 +1,11 @@
+---
+
+- name: root login via ssh is disabled
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    line: "PermitRootLogin no"
+    regexp: "^#?PermitRootLogin"
+  notify:
+    - restart sshd
+

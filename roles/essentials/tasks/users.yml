@@ -1,0 +1,34 @@
+---
+
+- name: sudo group is created
+  group: name=sudo state=present
+
+- name: wheel group is created
+  group: name=wheel state=present
+
+- name: sudo users can sudo with password
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    line: "%sudo ALL=(ALL:ALL) ALL"
+    regexp: "^%sudo"
+    validate: 'visudo -cf %s'
+
+- name: wheel users can sudo without password
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    line: "%wheel ALL=(ALL:ALL) NOPASSWD: ALL"
+    regexp: "^%wheel"
+    validate: 'visudo -cf %s'
+
+- name: deploy user added to wheel group
+  user: name="{{ user }}" groups="wheel" shell=/bin/bash generate_ssh_key=yes append=yes
+
+- name: env variables are set
+  lineinfile:
+    dest: "/home/{{ user }}/.bash_profile"
+    line: "{{ item }}"
+    create: yes
+  with_items:
+    - "EDITOR=vim"

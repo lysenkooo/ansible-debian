@@ -5,7 +5,3 @@
 
 - name: update timezone
   command: dpkg-reconfigure --frontend noninteractive tzdata
-
-- name: sync time
-  command: ntpdate -u pool.ntp.org ntp.ix.ru
-  ignore_errors: yes

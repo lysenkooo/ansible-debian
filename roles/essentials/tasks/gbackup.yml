@@ -1,0 +1,26 @@
+---
+
+- set_fact: gbackup_path="/var/gbackup"
+- set_fact: gbackup_log="/var/log/gbackup.log"
+- set_fact: gbackup_command="/usr/bin/gbackup {{ gbackup_path }} >> {{ gbackup_log }} 2>&1"
+
+- name: git backup script is installed
+  copy: src=gbackup dest=/usr/bin/gbackup mode=0755
+
+- name: log file is created
+  copy:
+    dest: "{{ gbackup_log }}"
+    content: ""
+    force: no
+
+- name: log file has right permissions
+  file:
+    path: "{{ gbackup_log }}"
+    state: file
+    mode: 0644
+    owner: "{{ user }}"
+    group: "{{ user }}"
+
+- name: git backup script is added to crontab
+  cron: name=gbackup minute=0 hour="*/8" job="{{ gbackup_command }}"
+  become_user: "{{ user }}"

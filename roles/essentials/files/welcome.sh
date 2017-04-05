@@ -51,4 +51,4 @@ if [ $USER = "root" ]; then
     echo
 fi
 
-PS1="\e[0;${COLOR}m[\u@\h \W]\\$\e[m "
+PS1="\[\e[0;${COLOR}m\][\u@\h \W]\\$\[\e[0m\] "

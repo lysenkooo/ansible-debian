@@ -1,0 +1,15 @@
+---
+
+- name: redirect deploy user emails to root
+  lineinfile:
+    dest: /etc/aliases
+    state: present
+    line: "{{ user }}: root"
+    regexp: "^{{ user }}:"
+
+- name: all emails sent to admin address
+  lineinfile:
+    dest: /etc/aliases
+    state: present
+    line: "root: {{ email }}"
+    regexp: "^root:"
