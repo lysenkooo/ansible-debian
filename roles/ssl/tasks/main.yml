@@ -1,7 +1,0 @@
----
-
-- name: certbot is installed
-  apt:
-    name: certbot
-    state: latest
-    default_release: jessie-backports

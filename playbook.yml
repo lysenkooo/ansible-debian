@@ -26,9 +26,6 @@
     - role: rvm
       tags: rvm
 
-    - role: ssl
-      tags: ssl
-
     - role: nginx
       tags: nginx
 
