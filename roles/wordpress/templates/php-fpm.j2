@@ -1,0 +1,27 @@
+[{{ wordpress_domain }}]
+listen         = /var/run/php/{{ wordpress_username }}.socket
+listen.backlog = -1
+listen.owner   = www-data
+listen.group   = www-data
+listen.mode    = 0660
+
+user  = {{ wordpress_username }}
+group = {{ wordpress_username }}
+
+pm                      = dynamic
+pm.max_children         = 8
+pm.start_servers        = 2
+pm.min_spare_servers    = 1
+pm.max_spare_servers    = 3
+pm.process_idle_timeout = 300s;
+pm.max_requests         = 500
+
+php_admin_value[memory_limit] = 128M
+php_admin_value[open_basedir] = /var/www/{{ wordpress_domain }}:.
+php_value[session.save_path]  = /var/www/{{ wordpress_domain }}/tmp
+
+env[HOSTNAME] = $HOSTNAME
+env[PATH]     = /usr/local/bin:/usr/bin:/bin
+env[TMP]      = /var/www/{{ wordpress_domain }}/tmp
+env[TMPDIR]   = /var/www/{{ wordpress_domain }}/tmp
+env[TEMP]     = /var/www/{{ wordpress_domain }}/tmp

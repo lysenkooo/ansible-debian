@@ -1,13 +1,17 @@
 ---
 - set_fact: www_directory="/var/www/{{ wordpress_domain }}/www"
+- set_fact: wordpress_username="{{ wordpress_domain | truncate(32, False, '') | regex_replace('[\.\-]+', '_') }}"
+
+- name: create domain user with random password
+  user: name="{{ wordpress_username }}" shell=/bin/false
 
 - name: create WordPress directory
   file:
     path="/var/www/{{ wordpress_domain }}/{{ item }}"
     state=directory
     recurse=yes
-    owner=www-data
-    group=www-data
+    owner="{{ wordpress_username }}"
+    group="{{ wordpress_username }}"
   with_items:
     - bin
     - tmp
@@ -23,8 +27,8 @@
     src: https://wordpress.org/latest.tar.gz
     dest: "/var/www/{{ wordpress_domain }}/tmp"
     remote_src: true
-    owner: www-data
-    group: www-data
+    owner: "{{ wordpress_username }}"
+    group: "{{ wordpress_username }}"
   when: wordpress_config_sample.stat.exists == False
 
 - name: move files to www directory
@@ -43,8 +47,8 @@
 - name: set permissions to wp-config.php
   file:
     path: "{{ www_directory }}/wp-config.php"
-    owner: www-data
-    group: www-data
+    owner: "{{ wordpress_username }}"
+    group: "{{ wordpress_username }}"
     mode: 0600
 
 - name: remove unnecessary files
@@ -71,6 +75,13 @@
     src=wordpress.j2
     dest=/etc/nginx/sites-available/{{ wordpress_domain }}.conf
     backup=yes
+
+- name: add config to php-fpm
+  template:
+    src=php-fpm.j2
+    dest=/etc/php/7.0/fpm/pool.d/{{ wordpress_username }}.conf
+  notify:
+    - restart php-fpm
 
 - name: create symlink for nginx config
   file:

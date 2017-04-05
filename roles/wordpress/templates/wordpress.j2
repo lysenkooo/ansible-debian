@@ -1,12 +1,16 @@
 server {
 	server_name www.{{ wordpress_domain }} {{ wordpress_domain }};
 	listen 80;
+	charset utf-8;
 	port_in_redirect off;
 	access_log   /var/www/{{ wordpress_domain }}/logs/access.log;
 	error_log    /var/www/{{ wordpress_domain }}/logs/error.log error;
 
 	root /var/www/{{ wordpress_domain }}/www;
 	index index.php;
+
+	set $root_path      {{ www_directory }};
+	set $php_fpm_socket "{{ wordpress_username }}";
 
 	location / {
 		try_files $uri $uri/ /index.php?$args;
@@ -27,9 +31,7 @@ server {
 	location ~ \.php$ {
 		try_files $uri =404;
 		include fastcgi_params;
-		fastcgi_pass unix:/run/php/php7.0-fpm.sock;
 		fastcgi_split_path_info ^(.+\.php)(.*)$;
-		fastcgi_param  SCRIPT_FILENAME $document_root$fastcgi_script_name;
 	}
 
 	# WordPress SEO by Yoast

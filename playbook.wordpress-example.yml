@@ -18,15 +18,33 @@
 
     - role: mysql
       tags: mysql
-      vars:
-        mysql_database: 'example_com'
-        mysql_user: 'example_com'
-        mysql_password: 'pJmhQfaucQFN9edm'
 
     - role: php
       tags: php
 
     - role: wordpress
       vars:
-        wordpress_domain: 'example.com'
+        wordpress_domain: 'example.app.dev'
+        mysql_database:   "{{ mysql_credentials[0].database }}"
+        mysql_user:       "{{ mysql_credentials[0].username }}"
+        mysql_password:   "{{ mysql_credentials[0].password }}"
       tags: wordpress
+      when: mysql_credentials is defined
+
+    - role: wordpress
+      vars:
+        wordpress_domain: 'site1.app.dev'
+        mysql_database:   "{{ mysql_credentials[1].database }}"
+        mysql_user:       "{{ mysql_credentials[1].username }}"
+        mysql_password:   "{{ mysql_credentials[1].password }}"
+      tags: wordpress
+      when: mysql_credentials is defined
+
+    - role: wordpress
+      vars:
+        wordpress_domain: 'site2.app.dev'
+        mysql_database:   "{{ mysql_credentials[2].database }}"
+        mysql_user:       "{{ mysql_credentials[2].username }}"
+        mysql_password:   "{{ mysql_credentials[2].password }}"
+      tags: wordpress
+      when: mysql_credentials is defined
