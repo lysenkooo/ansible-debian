@@ -28,7 +28,7 @@
 - name: env variables are set
   lineinfile:
     dest: "/home/{{ user }}/.bash_profile"
-    line: "{{ item }}"
+    line: "export {{ item }}"
     create: yes
   with_items:
     - "EDITOR=vim"

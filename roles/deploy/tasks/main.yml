@@ -70,7 +70,7 @@
     src: "{{ item }}"
     dest: "{{ nginx_site_path }}"
     backup: yes
-    validate: bash -c "nginx -t -c /dev/stdin <<< 'events {worker_connections 1;} http { include %s; }'"
+    validate: bash -c "nginx -t -c /dev/stdin <<< 'events { worker_connections 1; } http { include %s; }'"
   with_first_found:
     - files:
       - "{{ playbook_dir }}/assets/{{ app_name }}/nginx_site.j2"

@@ -24,9 +24,12 @@ sudo mkdir -p "${BACKUP_PATH}" && cd "${BACKUP_PATH}"
 sudo cp --parents -r /etc .
 sudo cp --parents -r /var/spool/cron .
 sudo rm -f etc/shadow etc/shadow- etc/gshadow etc/gshadow-
+
 sudo chown -R ${USER}:${USER} ${BACKUP_ROOT}
 
 cd ${BACKUP_ROOT}
-test -d "${BACKUP_ROOT}/.git" || git init
+test -d "${BACKUP_ROOT}/.git" || git init && git checkout -b "${SERVER_NAME}"
 git add "${SERVER_NAME}" && git commit -a -m "${DATE}"
-git pull origin master && git push origin master
+grep remote "${BACKUP_ROOT}/.git/config" && git push origin "${SERVER_NAME}"
+
+exit 0
