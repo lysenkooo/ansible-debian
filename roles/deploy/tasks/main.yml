@@ -32,20 +32,16 @@
   become_user: "{{ user }}"
   when: updated
 
+- name: update current
+  file: src={{ app_release_path }} path={{ app_path }}/current state=link
+  when: updated
+
 - name: do project related routine
   include: "{{ item }}"
   with_first_found:
     - files:
       - "{{ playbook_dir }}/assets/{{ app_name }}/tasks.yml"
       skip: true
-  when: updated
-
-- name: update current
-  file: src={{ app_release_path }} path={{ app_path }}/current state=link
-  when: updated
-
-- name: clean old releases
-  shell: "cd {{ app_path }}/releases && ls -1 | sort -r | tail -n +4 | xargs rm -rf"
   when: updated
 
 - name: systemd service is installed
@@ -57,11 +53,6 @@
       - "{{ playbook_dir }}/assets/{{ app_name }}/systemd_service.j2"
       - systemd_service.j2
   register: service
-
-- name: logrotate config installed
-  template:
-    src: logrotate.j2
-    dest: "/etc/logrotate.d/{{ app_name }}"
 
 - name: reload systemd
   command: systemctl daemon-reload
@@ -75,7 +66,11 @@
   when: service.changed or updated
 
 - name: nginx site is installed
-  template: src="{{ item }}" dest="{{ nginx_site_path }}" backup=yes
+  template:
+    src: "{{ item }}"
+    dest: "{{ nginx_site_path }}"
+    backup: yes
+    validate: bash -c "nginx -t -c /dev/stdin <<< 'events {worker_connections 1;} http { include %s; }'"
   with_first_found:
     - files:
       - "{{ playbook_dir }}/assets/{{ app_name }}/nginx_site.j2"
@@ -91,3 +86,12 @@
   notify:
     - restart nginx
   when: ansible_distribution == 'Debian'
+
+- name: logrotate config installed
+  template:
+    src: logrotate.j2
+    dest: "/etc/logrotate.d/{{ app_name }}"
+
+- name: clean old releases
+  shell: "cd {{ app_path }}/releases && ls -1 | sort -r | tail -n +4 | xargs rm -rf"
+  when: updated

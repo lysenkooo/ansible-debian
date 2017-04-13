@@ -1,0 +1,31 @@
+---
+
+- name: add deb key
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+
+- name: add repo repository
+  apt_repository:
+    repo: "deb https://artifacts.elastic.co/packages/5.x/apt stable main"
+    state: present
+
+- name: java is installed
+  apt: name=openjdk-8-jdk state=present default_release=jessie-backports
+
+- name: es is installed
+  apt: name=elasticsearch state=present
+
+- name: config is installed
+  template:
+    src: config.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+    backup: yes
+  notify:
+    - restart elasticsearch
+
+- name: es is started
+  service: name=elasticsearch state=started enabled=yes
+
+- name: set es index settings
+  shell: "curl -XPUT http://localhost:9200/_all/_settings?preserve_existing=true -d '{ \"index.number_of_replicas\" : \"0\", \"index.number_of_shards\" : \"1\" }'"
