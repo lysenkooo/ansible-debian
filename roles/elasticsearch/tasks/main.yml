@@ -24,8 +24,26 @@
   notify:
     - restart elasticsearch
 
+- name: set min heap size
+  lineinfile:
+    dest: /etc/elasticsearch/jvm.options
+    state: present
+    line: "-Xms256m"
+    regexp: "^-Xms"
+  notify:
+    - restart elasticsearch
+
+- name: set max heap size
+  lineinfile:
+    dest: /etc/elasticsearch/jvm.options
+    state: present
+    line: "-Xmx256m"
+    regexp: "^-Xmx"
+  notify:
+    - restart elasticsearch
+
 - name: es is started
   service: name=elasticsearch state=started enabled=yes
 
 - name: set es index settings
-  shell: "curl -XPUT http://localhost:9200/_all/_settings?preserve_existing=true -d '{ \"index.number_of_replicas\" : \"0\", \"index.number_of_shards\" : \"1\" }'"
+  shell: "curl -XPUT http://localhost:9200/_all/_settings?preserve_existing=true -d '{ \"index.number_of_shards\": \"1\", \"index.number_of_replicas\": \"0\", \"index.term_index_interval\": \"256\", \"index.term_index_divisor\": \"5\" }'"
